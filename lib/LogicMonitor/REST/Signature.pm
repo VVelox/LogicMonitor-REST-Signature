@@ -3,6 +3,9 @@ package LogicMonitor::REST::Signature;
 use 5.006;
 use strict;
 use warnings;
+use Time::HiRes qw( gettimeofday );
+use Crypt::Mac::HMAC;
+
 
 =head1 NAME
 
@@ -10,43 +13,178 @@ LogicMonitor::REST::Signature - The great new LogicMonitor::REST::Signature!
 
 =head1 VERSION
 
-Version 0.01
+Version 0.0.1
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.0.1';
 
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
     use LogicMonitor::REST::Signature;
+    
+    my $company='someCompany';
+    my $accessKey='some key';
+    my $accessID='some id';
 
-    my $foo = LogicMonitor::REST::Signature->new();
-    ...
+    my $lmsig_helper;
+    eval{
+        $lmsig_helper=LogicMonitor::REST::Signature->new({
+                                                          company=>$company,
+                                                          accessID=>$accessID,
+                                                          accessKey=>$accessKey,
+                                                          });
+    }
+    if (!defined($lmsig_helper)){
+        die("Failed to initial the module... ".$@);
+    }
 
-=head1 EXPORT
+    my $signature=$lmsig_helper->signature;
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+=head1 VARIABLES
 
-=head1 SUBROUTINES/METHODS
+This is a basic explanation of various variables used in this doc.
 
-=head2 function1
+=head2 accessID
+
+This is the accessID for the key.
+
+=head2 accessKey
+
+This is the API key.
+
+=head2 company
+
+This is the company name as shown in the URL.
+
+=head2 HTTPverb
+
+This is the HTTP verb for the request in question... so either GET or PUT.
+
+=head2 path
+
+This is the path and any variables in the URL.
+
+    'https://' . $company . '.logicmonitor.com/santaba/rest' . $path
+
+=head2 data
+
+The body of the HTTP request. Can be '', if doing like a GET.
+
+=head2 timestamp
+
+Milliseconds since epoc.
+
+    use Time::HiRes qw( gettimeofday );
+    my $timestamp = gettimeofday * 1000;
+    $timestamp = int( $timestamp );
+
+=head1 METHODS
+
+=head2 new
+
+This requires a hash ref with the following three variables.
+
+    company
+    accessID
+    accessKey
+
+    my $lmsig_helper;
+    eval{
+        $lmsig_helper=LogicMonitor::REST::Signature->new({
+                                                          company=>$company,
+                                                          accessID=>$accessID,
+                                                          accessKey=>$accessKey,
+                                                          });
+    }
+    if (!defined($lmsig_helper)){
+        die("Failed to initial the module... ".$@);
+    }
 
 =cut
 
-sub function1 {
+sub new {
+	my %args;
+	if (defined($_[1])) {
+		%args={$_[1]};
+	}else {
+		die('No argument hash ref passed');
+	}
+
+	my $args_valid_keys={
+						 company=>1,
+						 accessID=>1,
+						 accessKey=>1,
+						 };
+
+	foreach my $args_key (keys(%args)) {
+		if (!defiend( $args{ $args_key } )) {
+			die('The key "'.$args_key.'" is not present in the args hash ref');
+		}
+	}
+
+	my $self={
+			  company=>$args{company},
+			  accessID=>$args{accessID},
+			  accessKey=>$args{accessKey},
+			  };
+
+	return $self;
 }
 
-=head2 function2
+=head2 signature
+
+This generates the signature for a request.
+
+This requires variables below.
+
+    HTTPverb
+    path
+    data
+
+The value below is optional and will be automatically generated if not specified.
+
+    timestamp
+
+    my $sig;
+    eval{
+        $sig=$lmsig_helper->signature({
+                                       HTTPverb=>'GET',
+                                       path=>/foo/bar',
+                                       data=>'',
+                                      });
+    }
+    if (!defined($sig)){
+        die("Failed to generate the signature... ".$@);
+    }
 
 =cut
 
-sub function2 {
+sub signature{
+	my %args;
+	if (defined($_[1])) {
+		%args={$_[1]};
+	}else {
+		die('No argument hash ref passed');
+	}
+
+	my $args_valid_keys={
+						 HTTPverb=>1,
+						 path=>1,
+						 data=>1,
+						 };
+
+	foreach my $args_key (keys(%args)) {
+		if (!defiend( $args{ $args_key } )) {
+			die('The key "'.$args_key.'" is not present in the args hash ref');
+		}
+	}
+
+	if (!defiend($args{timestmp})) {
+		    $args{timestamp} = gettimeofday * 1000;
+			$args{timestamp} = int( $args{timestamp} );
+	}
 }
 
 =head1 AUTHOR
