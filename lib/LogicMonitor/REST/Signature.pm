@@ -117,11 +117,8 @@ Example...
 =cut
 
 sub new {
-	my %args;
-	if ( defined( $_[1] ) ) {
-		%args = { $_[1] };
-	}
-	else {
+	my $args=$_[1];
+	if ( !defined( $_[1] ) ) {
 		die('No argument hash ref passed');
 	}
 
@@ -132,17 +129,19 @@ sub new {
 		accessKey => 1,
 	};
 
+	use Data::Dumper;
+
 	#make sure all the keys required are present
-	foreach my $args_key ( keys(%args) ) {
-		if ( !defiend( $args{$args_key} ) ) {
-			die( 'The key "' . $args_key . '" is not present in the args hash ref' );
+	foreach my $args_key ( keys( %{$args_valid_keys} ) ) {
+		if ( !defined( $args->{$args_key} ) ) {
+			die( 'The key "' . $args_key . '" is not present in the args hash ref... '.Dumper($args) );
 		}
 	}
 
 	my $self = {
-		company   => $args{company},
-		accessID  => $args{accessID},
-		accessKey => $args{accessKey},
+		company   => $args->{company},
+		accessID  => $args->{accessID},
+		accessKey => $args->{accessKey},
 	};
 	bless $self;
 
@@ -197,11 +196,8 @@ Example with timestamp...
 
 sub signature {
 	my $self = $_[0];
-	my %args;
-	if ( defined( $_[1] ) ) {
-		%args = { $_[1] };
-	}
-	else {
+	my $args=$_[1];
+	if ( !defined( $_[1] ) ) {
 		die('No argument hash ref passed');
 	}
 
@@ -212,32 +208,32 @@ sub signature {
 	};
 
 	# make sure are the required variables are present
-	foreach my $args_key ( keys(%args) ) {
-		if ( !defined( $args{$args_key} ) ) {
+	foreach my $args_key ( keys( %{$args_valid_keys} ) ) {
+		if ( !defined( $args->{$args_key} ) ) {
 			die( 'The key "' . $args_key . '" is not present in the args hash ref' );
 		}
 	}
 
 	# If not specified, assume it is a request it is not needed for and set it to blank.
-	if ( !defined( $args{data} ) ) {
-		$args{data} = '';
+	if ( !defined( $args->{data} ) ) {
+		$args->{data} = '';
 	}
 
 	# generate the timestamp if needed
 	# gettimeofday returns microseconds... convert to milliseconds
-	if ( !defined( $args{timestmp} ) ) {
+	if ( !defined( $args->{timestmp} ) ) {
 
 		# gettimeofday returns microseconds... convert to milliseconds
-		$args{timestamp} = gettimeofday * 1000;
+		$args->{timestamp} = gettimeofday * 1000;
 
 		# appears to only want the integer portion based on their examples
 		# https://www.logicmonitor.com/support/rest-api-developers-guide/v1/rest-api-v1-examples
-		$args{timestamp} = int( $args{timestamp} );
+		$args->{timestamp} = int( $args->{timestamp} );
 	}
 
 	# put together the string that will be used for the signature
 	# https://www.logicmonitor.com/support/rest-api-developers-guide/overview/using-logicmonitors-rest-api#ss-header-24
-	my $string = $args{HTTPverb} . $args{timestamp} . $args{data} . $args{path};
+	my $string = $args->{HTTPverb} . $args->{timestamp} . $args->{data} . $args->{path};
 
 	# create the signature and return it
 	my $sig;
