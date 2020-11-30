@@ -4,8 +4,6 @@ use strict;
 use warnings;
 use Test::More;
 
-plan tests => 1;
-
 BEGIN {
     use_ok( 'LogicMonitor::REST::Signature' );
 }
@@ -24,6 +22,7 @@ eval{
 };
 ok( $worked eq '0', 'init') or diag("Iinitated with missing values");
 
+# make sure we init it
 $worked=0;
 eval{
 	$lmsig_helper=LogicMonitor::REST::Signature->new({
@@ -35,3 +34,35 @@ eval{
 };
 ok( $worked eq '1', 'init') or diag("Failed to init the object... ".$@);
 
+# make sure it can generate a known one, which requires a time stamp
+$worked=0;
+eval{
+	my $sig=$lmsig_helper->signature({
+					HTTPverb=>'GET',
+					path=>'/foo',
+					data=>'',
+					timestamp=>'1',
+				});
+	if ( $sig ne 'e0bb5OESDeQdMvtJy1Nr6Nju7Nd9axVXHUhMQjjA3f4=' ){
+		die 'Got "'.$sig.'" but was expecting "e0bb5OESDeQdMvtJy1Nr6Nju7Nd9axVXHUhMQjjA3f4="';
+	}
+	$worked=1
+};
+ok( $worked eq '1', 'signature 0') or diag("Failed to create the expected signature... ".$@);
+
+# make sure it can generate a known one, which requires a time stamp
+$worked=0;
+eval{
+	my $sig=$lmsig_helper->signature({
+					HTTPverb=>'GET',
+					path=>'/foo',
+					data=>'',
+				});
+	if (! defined ( $sig ) ){
+		die( 'Got a return of undef' );
+	}
+	$worked=1
+};
+ok( $worked eq '1', 'signature 1') or diag("Failed to create the a signature when auto generating a timestamp... ".$@);
+
+done_testing(5);

@@ -129,12 +129,10 @@ sub new {
 		accessKey => 1,
 	};
 
-	use Data::Dumper;
-
 	#make sure all the keys required are present
 	foreach my $args_key ( keys( %{$args_valid_keys} ) ) {
 		if ( !defined( $args->{$args_key} ) ) {
-			die( 'The key "' . $args_key . '" is not present in the args hash ref... '.Dumper($args) );
+			die( 'The key "' . $args_key . '" is not present in the args hash ref' );
 		}
 	}
 
@@ -221,7 +219,7 @@ sub signature {
 
 	# generate the timestamp if needed
 	# gettimeofday returns microseconds... convert to milliseconds
-	if ( !defined( $args->{timestmp} ) ) {
+	if ( !defined( $args->{timestamp} ) ) {
 
 		# gettimeofday returns microseconds... convert to milliseconds
 		$args->{timestamp} = gettimeofday * 1000;
@@ -247,7 +245,7 @@ sub signature {
 		die( 'Failed to generate the signature... ' . $@ );
 	}
 
-	return $self;
+	return $sig;
 }
 
 =head1 AUTHOR
