@@ -4,8 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 use Time::HiRes qw( gettimeofday );
-use Crypt::Mac::HMAC;
-
+use Crypt::Mac::HMAC qw( hmac_b64 );
 
 =head1 NAME
 
@@ -19,28 +18,29 @@ Version 0.0.1
 
 our $VERSION = '0.0.1';
 
-
 =head1 SYNOPSIS
 
-    use LogicMonitor::REST::Signature;
+	use LogicMonitor::REST::Signature;
     
-    my $company='someCompany';
-    my $accessKey='some key';
-    my $accessID='some id';
+	my $company   = 'someCompany';
+	my $accessKey = 'some key';
+	my $accessID  = 'some id';
+    
+	my $lmsig_helper;
+	eval {
+		$lmsig_helper = LogicMonitor::REST::Signature->new(
+			{
+				company   => $company,
+				accessID  => $accessID,
+				accessKey => $accessKey,
+			}
+		);
+	} if ( !defined($lmsig_helper) ) {
+		die( "Failed to initial the module... " . $@ );
+	}
+    
+	my $signature = $lmsig_helper->signature;
 
-    my $lmsig_helper;
-    eval{
-        $lmsig_helper=LogicMonitor::REST::Signature->new({
-                                                          company=>$company,
-                                                          accessID=>$accessID,
-                                                          accessKey=>$accessKey,
-                                                          });
-    }
-    if (!defined($lmsig_helper)){
-        die("Failed to initial the module... ".$@);
-    }
-
-    my $signature=$lmsig_helper->signature;
 
 =head1 VARIABLES
 
@@ -76,9 +76,9 @@ The body of the HTTP request. Can be '', if doing like a GET.
 
 Milliseconds since epoc.
 
-    use Time::HiRes qw( gettimeofday );
-    my $timestamp = gettimeofday * 1000;
-    $timestamp = int( $timestamp );
+	use Time::HiRes qw( gettimeofday );
+	my $timestamp = gettimeofday * 1000;
+	$timestamp = int($timestamp);
 
 =head1 METHODS
 
@@ -90,47 +90,55 @@ This requires a hash ref with the following three variables.
     accessID
     accessKey
 
-    my $lmsig_helper;
-    eval{
-        $lmsig_helper=LogicMonitor::REST::Signature->new({
-                                                          company=>$company,
-                                                          accessID=>$accessID,
-                                                          accessKey=>$accessKey,
-                                                          });
-    }
-    if (!defined($lmsig_helper)){
-        die("Failed to initial the module... ".$@);
-    }
+Example...
+
+	my $lmsig_helper;
+	eval {
+		$lmsig_helper = LogicMonitor::REST::Signature->new(
+			{
+				company   => $company,
+				accessID  => $accessID,
+				accessKey => $accessKey,
+			}
+		);
+	} if ( !defined($lmsig_helper) ) {
+		die( "Failed to initial the module... " . $@ );
+	}
 
 =cut
 
 sub new {
 	my %args;
-	if (defined($_[1])) {
-		%args={$_[1]};
-	}else {
+	if ( defined( $_[1] ) ) {
+		%args = { $_[1] };
+	}
+	else {
 		die('No argument hash ref passed');
 	}
 
-	my $args_valid_keys={
-						 company=>1,
-						 accessID=>1,
-						 accessKey=>1,
-						 };
+	# list of required keys
+	my $args_valid_keys = {
+		company   => 1,
+		accessID  => 1,
+		accessKey => 1,
+	};
 
-	foreach my $args_key (keys(%args)) {
-		if (!defiend( $args{ $args_key } )) {
-			die('The key "'.$args_key.'" is not present in the args hash ref');
+	#make sure all the keys required are present
+	foreach my $args_key ( keys(%args) ) {
+		if ( !defiend( $args{$args_key} ) ) {
+			die( 'The key "' . $args_key . '" is not present in the args hash ref' );
 		}
 	}
 
-	my $self={
-			  company=>$args{company},
-			  accessID=>$args{accessID},
-			  accessKey=>$args{accessKey},
-			  };
+	my $self = {
+		company   => $args{company},
+		accessID  => $args{accessID},
+		accessKey => $args{accessKey},
+	};
+	bless $self;
 
 	return $self;
+
 }
 
 =head2 signature
@@ -141,11 +149,14 @@ This requires variables below.
 
     HTTPverb
     path
-    data
 
-The value below is optional and will be automatically generated if not specified.
+The value below is optional and will be automatically generated if not
+specified, or in the case of data set to ''.
 
     timestamp
+    data
+
+Example...
 
     my $sig;
     eval{
@@ -154,37 +165,70 @@ The value below is optional and will be automatically generated if not specified
                                        path=>/foo/bar',
                                        data=>'',
                                       });
-    }
+    };
     if (!defined($sig)){
         die("Failed to generate the signature... ".$@);
     }
 
 =cut
 
-sub signature{
+sub signature {
+	my $self = $_[0];
 	my %args;
-	if (defined($_[1])) {
-		%args={$_[1]};
-	}else {
+	if ( defined( $_[1] ) ) {
+		%args = { $_[1] };
+	}
+	else {
 		die('No argument hash ref passed');
 	}
 
-	my $args_valid_keys={
-						 HTTPverb=>1,
-						 path=>1,
-						 data=>1,
-						 };
+	# a list of all required keys
+	my $args_valid_keys = {
+		HTTPverb => 1,
+		path     => 1,
+	};
 
-	foreach my $args_key (keys(%args)) {
-		if (!defiend( $args{ $args_key } )) {
-			die('The key "'.$args_key.'" is not present in the args hash ref');
+	# make sure are the required variables are present
+	foreach my $args_key ( keys(%args) ) {
+		if ( !defined( $args{$args_key} ) ) {
+			die( 'The key "' . $args_key . '" is not present in the args hash ref' );
 		}
 	}
 
-	if (!defiend($args{timestmp})) {
-		    $args{timestamp} = gettimeofday * 1000;
-			$args{timestamp} = int( $args{timestamp} );
+	# If not specified, assume it is a request it is not needed for and set it to blank.
+	if ( !defined( $args{data} ) ) {
+		$args{data} = '';
 	}
+
+	# generate the timestamp if needed
+	# gettimeofday returns microseconds... convert to milliseconds
+	if ( !defined( $args{timestmp} ) ) {
+
+		# gettimeofday returns microseconds... convert to milliseconds
+		$args{timestamp} = gettimeofday * 1000;
+
+		# appears to only want the integer portion based on their examples
+		# https://www.logicmonitor.com/support/rest-api-developers-guide/v1/rest-api-v1-status-codes
+		$args{timestamp} = int( $args{timestamp} );
+	}
+
+	# put together the string that will be used for the signature
+	# https://www.logicmonitor.com/support/rest-api-developers-guide/overview/using-logicmonitors-rest-api#ss-header-24
+	my $string = $args{HTTPverb} . $args{timestamp} . $args{data} . $args{path};
+
+	# create the signature and return it
+	my $sig;
+	eval {
+		$sig = hmac_b64( 'SHA256', $self->{accessKey}, $string );
+		if ( !defined($sig) ) {
+			die('hmac_b64 returned undef');
+		}
+	};
+	if ($@) {
+		die( 'Failed to generate the signature... ' . $@ );
+	}
+
+	return $self;
 }
 
 =head1 AUTHOR
@@ -240,4 +284,4 @@ This is free software, licensed under:
 
 =cut
 
-1; # End of LogicMonitor::REST::Signature
+1;    # End of LogicMonitor::REST::Signature
