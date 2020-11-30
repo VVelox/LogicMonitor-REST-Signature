@@ -39,8 +39,17 @@ our $VERSION = '0.0.1';
 		die( "Failed to initial the module... " . $@ );
 	}
     
-	my $signature = $lmsig_helper->signature;
-
+    my $sig;
+    eval{
+        $sig=$lmsig_helper->signature({
+                                       HTTPverb=>'GET',
+                                       path=>/foo/bar',
+                                       data=>'foo foo',
+                                      });
+    };
+    if (!defined($sig)){
+        die("Failed to generate the signature... ".$@);
+    }
 
 =head1 VARIABLES
 
@@ -163,7 +172,21 @@ Example...
         $sig=$lmsig_helper->signature({
                                        HTTPverb=>'GET',
                                        path=>/foo/bar',
-                                       data=>'',
+                                       data=>'foo foo',
+                                      });
+    };
+    if (!defined($sig)){
+        die("Failed to generate the signature... ".$@);
+    }
+
+Example with timestamp...
+
+    my $sig;
+    eval{
+        $sig=$lmsig_helper->signature({
+                                       HTTPverb=>'GET',
+                                       path=>/foo/bar',
+                                       timestamp=>'1234',
                                       });
     };
     if (!defined($sig)){
@@ -208,7 +231,7 @@ sub signature {
 		$args{timestamp} = gettimeofday * 1000;
 
 		# appears to only want the integer portion based on their examples
-		# https://www.logicmonitor.com/support/rest-api-developers-guide/v1/rest-api-v1-status-codes
+		# https://www.logicmonitor.com/support/rest-api-developers-guide/v1/rest-api-v1-examples
 		$args{timestamp} = int( $args{timestamp} );
 	}
 
