@@ -17,7 +17,7 @@ sub help{
 }
 
 my $required_args = {
-	'Logicmonitor_Company'   => 1,
+	'Logicmonitor_company'   => 1,
 	'Logicmonitor_accessKey' => 1,
 	'Logicmonitor_accessID'  => 1,
 	};
