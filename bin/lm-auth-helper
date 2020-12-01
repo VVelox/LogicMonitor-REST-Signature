@@ -30,7 +30,7 @@ foreach my $key ( keys %{$required_args} ) {
 
 # initiate the helper
 my $lmsig_helper=LogicMonitor::REST::Signature->new({
-													 company=>$ENV{Logicmonitor_Company},
+													 company=>$ENV{Logicmonitor_company},
 													 accessKey=>$ENV{Logicmonitor_accessKey},
 													 accessID=>$ENV{Logicmonitor_accessID},
 													 });
