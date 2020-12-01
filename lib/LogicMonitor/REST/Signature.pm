@@ -144,7 +144,6 @@ sub new {
 	bless $self;
 
 	return $self;
-
 }
 
 =head2 signature
@@ -154,29 +153,14 @@ This generates the signature for a request.
 This requires variables below.
 
     HTTPverb
+    timestamp
     path
 
-The value below is optional and will be automatically generated if not
-specified, or in the case of data set to ''.
+If data is not specified, it is assumed to be ''.
 
-    timestamp
     data
 
 Example...
-
-    my $sig;
-    eval{
-        $sig=$lmsig_helper->signature({
-                                       HTTPverb=>'GET',
-                                       path=>/foo/bar',
-                                       data=>'foo foo',
-                                      });
-    };
-    if (!defined($sig)){
-        die("Failed to generate the signature... ".$@);
-    }
-
-Example with timestamp...
 
     my $sig;
     eval{
@@ -201,8 +185,9 @@ sub signature {
 
 	# a list of all required keys
 	my $args_valid_keys = {
-		HTTPverb => 1,
-		path     => 1,
+		HTTPverb  => 1,
+		path      => 1,
+		timestamp => 1,
 	};
 
 	# make sure are the required variables are present
@@ -215,18 +200,6 @@ sub signature {
 	# If not specified, assume it is a request it is not needed for and set it to blank.
 	if ( !defined( $args->{data} ) ) {
 		$args->{data} = '';
-	}
-
-	# generate the timestamp if needed
-	# gettimeofday returns microseconds... convert to milliseconds
-	if ( !defined( $args->{timestamp} ) ) {
-
-		# gettimeofday returns microseconds... convert to milliseconds
-		$args->{timestamp} = gettimeofday * 1000;
-
-		# appears to only want the integer portion based on their examples
-		# https://www.logicmonitor.com/support/rest-api-developers-guide/v1/rest-api-v1-examples
-		$args->{timestamp} = int( $args->{timestamp} );
 	}
 
 	# put together the string that will be used for the signature
@@ -246,6 +219,52 @@ sub signature {
 	}
 
 	return $sig;
+}
+
+=sub auth_header
+
+Generates the auth header. The usage is similiar to signature, but this does not
+need a timestamp specified.
+
+This requires variables below.
+
+    HTTPverb
+    path
+
+If data is not specified, it is assumed to be ''.
+
+    data
+
+Example...
+
+    my $auth_header;
+    eval{
+        $sig=$lmsig_helper->auth_header({
+                                       HTTPverb=>'GET',
+                                       path=>/foo/bar',
+                                      });
+    };
+    if (!defined($sig)){
+        die("Failed to generate the auth header... ".$@);
+    }
+
+=cut
+
+sub auth_header{
+	my $self = $_[0];
+	my $args=$_[1];
+	if ( !defined( $_[1] ) ) {
+		die('No argument hash ref passed');
+	}
+
+	my $timestamp = gettimeofday * 1000;
+	$timestamp = int($timestamp);
+
+	$args->{timestamp}=$timestamp;
+
+	my $header='LMv1 '.$self->{accessID}.':'.$self->signature($args).':'.$timestamp;
+
+	return $header;
 }
 
 =head1 AUTHOR

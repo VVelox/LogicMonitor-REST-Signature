@@ -50,19 +50,19 @@ eval{
 };
 ok( $worked eq '1', 'signature 0') or diag("Failed to create the expected signature... ".$@);
 
-# make sure it can generate a known one, which requires a time stamp
+# tests if it can call auth_header and generate a valid signature
 $worked=0;
 eval{
-	my $sig=$lmsig_helper->signature({
-					HTTPverb=>'GET',
-					path=>'/foo',
-					data=>'',
-				});
-	if (! defined ( $sig ) ){
-		die( 'Got a return of undef' );
+	my $auth_header=$lmsig_helper->signature({
+						HTTPverb=>'GET',
+						path=>'/foo',
+						data=>'',
+					});
+	if ( $auth_header !~ /^LMv1\ .*\:[a-zA-Z0-9\+\/\=]*:[0-9]+$/ ){
+		die 'Got "'.$auth_header.'" but was expecting "e0bb5OESDeQdMvtJy1Nr6Nju7Nd9axVXHUhMQjjA3f4="';
 	}
 	$worked=1
 };
-ok( $worked eq '1', 'signature 1') or diag("Failed to create the a signature when auto generating a timestamp... ".$@);
+ok( $worked eq '1', 'auth_header 0') or diag("Failed to create a auth_header... ".$@);
 
 done_testing(5);
