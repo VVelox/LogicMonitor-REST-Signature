@@ -1,6 +1,10 @@
 LogicMonitor-REST-Signature
 
+This is for helping generate the REST API auth token for Logicmonitor.
 
+The token documentation can be found at the URL below.
+
+https://www.logicmonitor.com/support/rest-api-developers-guide/overview/using-logicmonitors-rest-api#sc-header-302
 
 INSTALLATION
 
