@@ -8,7 +8,7 @@ use Crypt::Mac::HMAC qw( hmac_b64 );
 
 =head1 NAME
 
-LogicMonitor::REST::Signature - The great new LogicMonitor::REST::Signature!
+LogicMonitor::REST::Signature - Generate signatures and authheader info for the Logicmonitor REST API.
 
 =head1 VERSION
 

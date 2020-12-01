@@ -50,10 +50,25 @@ eval{
 };
 ok( $worked eq '1', 'signature 0') or diag("Failed to create the expected signature... ".$@);
 
+# make sure it can generate a known one with no data, which requires a time stamp
+$worked=0;
+eval{
+	my $sig=$lmsig_helper->signature({
+					HTTPverb=>'GET',
+					path=>'/foo',
+					timestamp=>'1',
+				});
+	if ( $sig ne 'e0bb5OESDeQdMvtJy1Nr6Nju7Nd9axVXHUhMQjjA3f4=' ){
+		die 'Got "'.$sig.'" but was expecting "e0bb5OESDeQdMvtJy1Nr6Nju7Nd9axVXHUhMQjjA3f4="';
+	}
+	$worked=1
+};
+ok( $worked eq '1', 'signature 1') or diag("Failed to create the expected signature... ".$@);
+
 # tests if it can call auth_header and generate a valid signature
 $worked=0;
 eval{
-	my $auth_header=$lmsig_helper->signature({
+	my $auth_header=$lmsig_helper->auth_header({
 						HTTPverb=>'GET',
 						path=>'/foo',
 						data=>'',
@@ -65,4 +80,4 @@ eval{
 };
 ok( $worked eq '1', 'auth_header 0') or diag("Failed to create a auth_header... ".$@);
 
-done_testing(5);
+done_testing(6);

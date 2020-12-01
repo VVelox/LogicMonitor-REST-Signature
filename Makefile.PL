@@ -16,6 +16,7 @@ my %WriteMakefileArgs = (
     TEST_REQUIRES => {
         'Test::More' => '0',
     },
+	INST_SCRIPT => 'bin',
     PREREQ_PM => {
 		'Crypt::Mac::HMAC'=>'0.069',
 		'Time::HiRes'=>'1.9764',

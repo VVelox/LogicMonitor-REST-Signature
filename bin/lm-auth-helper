@@ -1,0 +1,87 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use LogicMonitor::REST::Signature;
+use Getopt::Long;
+
+sub version{
+	print "lm-auth-helper v. 0.0.1\n";
+}
+
+sub help{
+	print '
+
+';
+
+}
+
+my $required_args = {
+	'Logicmonitor_Company'   => 1,
+	'Logicmonitor_accessKey' => 1,
+	'Logicmonitor_accessID'  => 1,
+	};
+
+foreach my $key ( keys %{$required_args} ) {
+	if (!defined( $ENV{$key} )) {
+		die( 'The enviromental variable "'.$key.'" is not set' );
+	}
+}
+
+# initiate the helper
+my $lmsig_helper=LogicMonitor::REST::Signature->new({
+													 company=>$ENV{Logicmonitor_Company},
+													 accessKey=>$ENV{Logicmonitor_accessKey},
+													 accessID=>$ENV{Logicmonitor_accessID},
+													 });
+
+# read the options in questions
+my $verb = 'GET';
+my $file;;
+my $data='';
+my $path;
+my $version;
+my $help;
+my $newline;
+GetOptions(
+	'verb=s'  => \$verb,
+	'data=s'  => \$file,
+	'path=s'  => \$path,
+	'v'       => \$version,
+	'version' => \$version,
+	'h'       => \$help,
+	'help'    => \$help,
+	'n'=>\$newline,
+);
+
+# print the version or help info if requested
+if ( $version ){
+        &version;
+        exit;
+}
+if ( $help ){
+        &version;
+        &help;
+        exit;
+}
+
+# read the file contaning the data if specified
+if ($file) {
+	my $fh;
+	open( $fh,'<', $file ) or die $!;
+	while (readline($fh)) {
+		$data=$data.$_;
+	}
+	close( $fh );
+}
+
+# create the auth header data with the sig included
+print $lmsig_helper->auth_header({
+								  HTTPverb=>$verb,
+								  data=>$data,
+								  path=>$path,
+								  });
+
+if ( $newline ){
+	print "\n";
+}
