@@ -4,7 +4,8 @@ use 5.006;
 use strict;
 use warnings;
 use Time::HiRes qw( gettimeofday );
-use Crypt::Mac::HMAC qw( hmac_b64 );
+use Crypt::Mac::HMAC qw( hmac_hex );
+use MIME::Base64;
 
 =head1 NAME
 
@@ -95,7 +96,6 @@ Milliseconds since epoc.
 
 This requires a hash ref with the following three variables.
 
-    company
     accessID
     accessKey
 
@@ -105,7 +105,6 @@ Example...
 	eval {
 		$lmsig_helper = LogicMonitor::REST::Signature->new(
 			{
-				company   => $company,
 				accessID  => $accessID,
 				accessKey => $accessKey,
 			}
@@ -124,7 +123,7 @@ sub new {
 
 	# list of required keys
 	my $args_valid_keys = {
-		company   => 1,
+#		company   => 1,
 		accessID  => 1,
 		accessKey => 1,
 	};
@@ -137,7 +136,7 @@ sub new {
 	}
 
 	my $self = {
-		company   => $args->{company},
+#		company   => $args->{company},
 		accessID  => $args->{accessID},
 		accessKey => $args->{accessKey},
 	};
@@ -209,7 +208,8 @@ sub signature {
 	# create the signature and return it
 	my $sig;
 	eval {
-		$sig = hmac_b64( 'SHA256', $self->{accessKey}, $string );
+		$sig = encode_base64( hmac_hex( 'SHA256', $self->{accessKey}, $string ) );
+		$sig =~ s/\n//g;
 		if ( !defined($sig) ) {
 			die('hmac_b64 returned undef');
 		}

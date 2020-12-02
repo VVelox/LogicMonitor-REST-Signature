@@ -26,7 +26,6 @@ ok( $worked eq '0', 'init') or diag("Iinitated with missing values");
 $worked=0;
 eval{
 	$lmsig_helper=LogicMonitor::REST::Signature->new({
-					company=>$company,
 					accessKey=>$accessKey,
 					accessID=>$accessID,
 				});
@@ -43,8 +42,8 @@ eval{
 					data=>'',
 					timestamp=>'1',
 				});
-	if ( $sig ne 'e0bb5OESDeQdMvtJy1Nr6Nju7Nd9axVXHUhMQjjA3f4=' ){
-		die 'Got "'.$sig.'" but was expecting "e0bb5OESDeQdMvtJy1Nr6Nju7Nd9axVXHUhMQjjA3f4="';
+	if ( $sig ne 'N2I0NmRiZTRlMTEyMGRlNDFkMzJmYjQ5Y2I1MzZiZThkOGVlZWNkNzdkNmIxNTU3MWQ0ODRjNDIzOGMwZGRmZQ==' ){
+		die 'Got "'.$sig.'" but was expecting "N2I0NmRiZTRlMTEyMGRlNDFkMzJmYjQ5Y2I1MzZiZThkOGVlZWNkNzdkNmIxNTU3MWQ0ODRjNDIzOGMwZGRmZQ=="';
 	}
 	$worked=1
 };
@@ -58,8 +57,8 @@ eval{
 					path=>'/foo',
 					timestamp=>'1',
 				});
-	if ( $sig ne 'e0bb5OESDeQdMvtJy1Nr6Nju7Nd9axVXHUhMQjjA3f4=' ){
-		die 'Got "'.$sig.'" but was expecting "e0bb5OESDeQdMvtJy1Nr6Nju7Nd9axVXHUhMQjjA3f4="';
+	if ( $sig ne 'N2I0NmRiZTRlMTEyMGRlNDFkMzJmYjQ5Y2I1MzZiZThkOGVlZWNkNzdkNmIxNTU3MWQ0ODRjNDIzOGMwZGRmZQ==' ){
+		die 'Got "'.$sig.'" but was expecting "N2I0NmRiZTRlMTEyMGRlNDFkMzJmYjQ5Y2I1MzZiZThkOGVlZWNkNzdkNmIxNTU3MWQ0ODRjNDIzOGMwZGRmZQ=="';
 	}
 	$worked=1
 };
