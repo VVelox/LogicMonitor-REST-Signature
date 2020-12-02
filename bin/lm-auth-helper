@@ -17,7 +17,7 @@ sub help{
 --data <data file>  If doing a put, this is a path to a file containing the data that the put contains.
 -n                  Print a newline character at the end.
 -c                  Print "Authorizion: " with the string for curl.
--q                  Print it quoted.
+-q                  Print it quoted. May not work reliably depending on the shell.
 --version           Show the version info.
 --help              Print this message.
 ';
@@ -104,6 +104,7 @@ if ($quoted) {
 	print "'";
 }
 
+# print a new line if asked to
 if ( $newline ){
 	print "\n";
 }
@@ -151,7 +152,7 @@ Print "Authorizion: " with the string for curl.
 
 =head2 -q
 
-Print it quoted.
+Print it quoted. This may not always work reliably.
 
 =head2 --version
 

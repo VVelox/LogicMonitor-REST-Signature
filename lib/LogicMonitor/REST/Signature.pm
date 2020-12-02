@@ -303,6 +303,10 @@ L<https://cpanratings.perl.org/d/LogicMonitor-REST-Signature>
 
 L<https://metacpan.org/release/LogicMonitor-REST-Signature>
 
+=item * GIT Repo
+
+L<https://github.com/VVelox/LogicMonitor-REST-Signature>
+
 =back
 
 

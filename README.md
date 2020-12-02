@@ -6,6 +6,8 @@ The token documentation can be found at the URL below.
 
 https://www.logicmonitor.com/support/rest-api-developers-guide/overview/using-logicmonitors-rest-api#sc-header-302
 
+The script lm-auth-helper is for use with like curl.
+
 INSTALLATION
 
 To install this module, run the following commands:
@@ -32,6 +34,9 @@ You can also look for information at:
 
     Search CPAN
         https://metacpan.org/release/LogicMonitor-REST-Signature
+		
+	Git Repo
+		https://github.com/VVelox/LogicMonitor-REST-Signature
 
 
 LICENSE AND COPYRIGHT
