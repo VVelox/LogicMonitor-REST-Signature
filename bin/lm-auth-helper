@@ -12,6 +12,14 @@ sub version{
 sub help{
 	print '
 
+--verb <HTTP verb>  The HTTP verb in question. Either GET or PUT.
+--path <API path>   The API resource path. Such as /device/devices
+--data <data file>  If doing a put, this is a path to a file containing the data that the put contains.
+-n                  Print a newline character at the end.
+-c                  Print "Authorizion: " with the string for curl.
+-q                  Print it quoted.
+--version           Show the version info.
+--help              Print this message.
 ';
 
 }
@@ -29,7 +37,6 @@ foreach my $key ( keys %{$required_args} ) {
 
 # initiate the helper
 my $lmsig_helper=LogicMonitor::REST::Signature->new({
-													 company=>$ENV{Logicmonitor_company},
 													 accessKey=>$ENV{Logicmonitor_accessKey},
 													 accessID=>$ENV{Logicmonitor_accessID},
 													 });
@@ -42,15 +49,17 @@ my $path;
 my $version;
 my $help;
 my $newline;
+my $quoted;
+my $curl;
 GetOptions(
 	'verb=s'  => \$verb,
 	'data=s'  => \$file,
 	'path=s'  => \$path,
-	'v'       => \$version,
 	'version' => \$version,
-	'h'       => \$help,
 	'help'    => \$help,
-	'n'=>\$newline,
+	'n'       => \$newline,
+	'q'       => \$quoted,
+	'c'       => \$curl,
 );
 
 # print the version or help info if requested
@@ -74,6 +83,15 @@ if ($file) {
 	close( $fh );
 }
 
+# add the quotes if '-q' is given
+if ($quoted) {
+	print "'";
+}
+
+if ($curl) {
+	print "Authorization: ";
+}
+
 # create the auth header data with the sig included
 print $lmsig_helper->auth_header({
 								  HTTPverb=>$verb,
@@ -81,6 +99,67 @@ print $lmsig_helper->auth_header({
 								  path=>$path,
 								  });
 
+# add the quotes if '-q' is given
+if ($quoted) {
+	print "'";
+}
+
 if ( $newline ){
 	print "\n";
 }
+
+=head1 NAME
+
+lm-auth-helper - Builds LMv1 token header info for Logicmonitor.
+
+=head1 SYNOPSIS
+
+lm-auth-helper B<--path> <path> [B<--verb> <HTTP verb>] [B<--data> <file>] [B<-c>] [B<-q>]
+
+=head1 DESCRIPTION
+
+This puts together the auth token header for Logicmonitor.
+
+This requires the following enviromentalvalues to be set.
+
+    Logicmonitor_accessKey
+    Logicmonitor_accessID
+
+Those are respectively the access key and access ID for the REST API.
+
+=head1 SWITCHES
+
+=head2 --verb <HTTP verb> 
+
+The HTTP verb in question. Either GET or PUT.
+
+=head2 --path <API path>
+
+The API resource path. Such as /device/devices
+
+=head2 --data <data file>
+
+If doing a put, this is a path to a file containing the data that the put contains.
+
+=head2 -n
+
+Print a newline character at the end.
+
+=head2 -c
+
+Print "Authorizion: " with the string for curl.
+
+=head2 -q
+
+Print it quoted.
+
+=head2 --version
+
+Show the version info.
+
+=head2 --help
+
+Print this message.
+
+=cut
+
